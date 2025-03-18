@@ -1,0 +1,6 @@
+# Unwanted builder output files for .bib
+references.aux
+references.fdb_latexmk
+references.fls
+references.log
+
