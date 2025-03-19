@@ -46,7 +46,12 @@ This software:
 > [!IMPORTANT]
 > The above design for a program should infact be useful for the application of ACD to **many** _realistic_, or indeed _real-world_ cyber systems. As such, we have **designed and documented an abstract software interface** to _generalise_ over different cyber systems and policies.
 
-## How do you train or evaluate agents?
+## How do you train or evaluate policies?
+In **_R<sup>3</sup>ACE_**, a policy is a software implementation of the `RLPolicyType` interface. This interface is one of the building blocks that make up the modular software interface for the _blue program_.
+
+At present, the policy module of the _blue program_ interface (defined in OCaml) must be implemented in OCaml, along with the rest of the _blue program_. **There are plans to provide a policy implementation that exposes an HTTP API, over which observations and actions could be exchanged between the _blue program_ and another runtime (e.g. Python) functioning as a '_policy server_'**.
+
+Training or evaluation occurs when the cyber system is running (all network hosts are up with applications running, e.g. servers, clients, logging daemons) **and** the _blue program_ is running (with an embedded policy, as discussed). The distinction between training and evaluation comes down to whether or not the policy implementation is 'self-optimising' at that point in time (e.g. the program mutating the policy based on the rewards returned by the reward function).
 
 
 # Set Up Infrastructure - Physical or Virtual
