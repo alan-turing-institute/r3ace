@@ -199,7 +199,9 @@ Automation.” In *NOMS 2023-2023 IEEE/IFIP Network Operations and
 Management Symposium*, 1–6.
 <https://doi.org/10.1109/NOMS56928.2023.10154288>.
 
-[6] open gym
+[6] Brockman, Greg, Vicki Cheung, Ludwig Pettersson, Jonas Schneider, John
+Schulman, Jie Tang, and Wojciech Zaremba. 2016. “OpenAI Gym.”
+
 
 [7] DOLSTRA, EELCO, ANDRES LÖH, and NICOLAS PIERRON. 2010. “NixOS: A Purely
 Functional Linux Distribution.” *Journal of Functional Programming* 20
