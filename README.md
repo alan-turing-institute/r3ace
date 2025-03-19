@@ -1,17 +1,17 @@
 # R<sup>3</sup>ACE - *Replicable* and *Reproducible* *Real-World* Autonomous Cyber Environments
 ## Motivation
-Existing cyber environments **incorporating low fidelity models and high levels of abstraction** <sub>[1],[2]</sub>, contribute valuable opportunities to fundamental research into problems such as task and entity generalisation.
+Existing cyber environments **incorporating low fidelity models and high levels of abstraction** <sub>[1],[2]</sub>, are valuable for exploring more fundamental research problems in autonomous cyber defence (ACD), such as task and entity generalisation.
 
-However, within Autonomous Cyber Defence (ACD) **there remain concerns about the _reality-gap_ between cyber environments and real-world cyber-systems** <sub>[3]</sub>. 
+However, **there remain concerns about the _reality-gap_ between cyber environments and real-world cyber-systems** <sub>[3]</sub>. 
 
 Environments attempting to close the reality-gap have been varied in their approach, robustness and public availability <sub>[4],[5]</sub>.
 
-Moreover, **the decision problems presented by more realistic environments are extremely challenging**. It is complex both to make progress and to measure it. In these environments **research faces the complexity of realism _combined_ with scale**.
+Moreover, **the decision problems presented by the more realistic environments that are currently available, are extremely challenging**. It is complex both to make progress and to measure it. In these environments **research faces the complexity of realism _combined_ with scale**.
 
 ### Contributions to ACD research:
 1. Explore the challenges of realism, without the challenge of scale - focusing on **_replicability_** and _**reproducibility**_.
 2. Specifically, train and evalutate ACD agents against **_continuous-time_**, **_conurrently-running_** cyber systems. This is a departure from cyber environments that expose discrete-time, turn-based finite state machines.
-3. Investigate both **_physical_** and **_virtual_** systems, with _**accesible**_ and _**reproducible**_ infrastructure.
+3. Investigate both **_physical_** and **_virtual_** systems, with _**accessible**_ and _**reproducible**_ infrastructure.
 
 ## Overview
 ### Objective
@@ -22,23 +22,36 @@ Our design for a **_minimum viable cyber system_** (there are surely others) con
 
 ![schematic of the infrastructure for a minimum viable cyber system](figures/infra-schematic.png)
 
-Central to the task of evaluating cyber defence is a consensus on **the _utility_ of the cyber system** - the value or service that the system provides. Simulating this utility is an important and challenging task.
+Central to the task of evaluating the defence of a cyber system is a consensus on it's **_utility_** - the value or service that the system provides, upon which stakeholders depend. Simulating this utility is an important and challenging task in the design of cyber environments.
 
 We propose that **one of the machines, the '_web client_', finds utility in receiving a constant stream of OK (status code = 200) responses** to the GET requests it sends to the '_web server_'.
 
-The system can be instantiated with either physical hardware (e.g. a network of Raspberry Pi's) or virtualised.
+The system can be instantiated with either physical hardware (e.g. a network of Raspberry Pi's) or virtualised hardware.
 
 ![photo of a minimum viable cyber system instantiated with physical hardware, 3 Raspberry Pi's networked together with an ethernet switch](figures/physical-infrastructure.jpg)
 
 # Getting Started
-## How this is different to other Cyber Environments
+## How is this different to other Cyber Environments?
+In contrast with 'AI Gym' environments, such as those available in the [OpenAI/gym](https://github.com/openai/gym) project <sub>[6]</sub>, **_R<sup>3</sup>ACE_** does **not** expose a turn-based API (e.g. the environment, a finite state machine, 'waits' while the policy computes an action, after which the environment is 'stepped' forwards to the agents next turn).
+
+> [!IMPORTANT]
+> **_R<sup>3</sup>ACE_ is a real computer network** (cyber infrastructure) with a cyber defence software program, the _'blue program_' running on one of the machines.
+
+### The _blue program_
+This software:
+1. Fetches information from the cyber system (the surrounding compute network).
+2. Uses a policy to decide what (if any) action to take.
+3. Executes this action, causing a side effect in the cyber system (e.g. an IP address is added to a block list).
+
+> [!IMPORTANT]
+> The above design for a program should infact be useful for the application of ACD to **many** _realistic_, or indeed _real-world_ cyber systems. As such, we have **designed and documented an abstract software interface** to _generalise_ over different cyber systems and policies.
 
 ## How do you train or evaluate agents?
 
 
 # Set Up Infrastructure - Physical or Virtual
 ## How are the machines **_reproducibly_** configured?
-The machines run [NixOS](https://nixos.org/) <sub>[6]</sub>, a Linux distribution based on the Nix package management system <sub>[7]</sub>. Producing _"reproducible, declarative and reliable systems"_ is central to Nix's design.
+The machines run [NixOS](https://nixos.org/) <sub>[7]</sub>, a Linux distribution based on the Nix package management system <sub>[8]</sub>. Producing _"reproducible, declarative and reliable systems"_ is central to Nix's design.
 
 **This repository contains operating system (OS) declaration files for each of the 3 machines.** These OS configurations can be reproducibly installed onto both physical and virtual machines.
 
@@ -181,11 +194,13 @@ Automation.” In *NOMS 2023-2023 IEEE/IFIP Network Operations and
 Management Symposium*, 1–6.
 <https://doi.org/10.1109/NOMS56928.2023.10154288>.
 
-[6] DOLSTRA, EELCO, ANDRES LÖH, and NICOLAS PIERRON. 2010. “NixOS: A Purely
+[6] open gym
+
+[7] DOLSTRA, EELCO, ANDRES LÖH, and NICOLAS PIERRON. 2010. “NixOS: A Purely
 Functional Linux Distribution.” *Journal of Functional Programming* 20
 (5–6): 577–615. <https://doi.org/10.1017/S0956796810000195>.
 
-[7] Dolstra, Eelco, Merijn de Jonge, and Eelco Visser. 2004. “Nix: A Safe
+[8] Dolstra, Eelco, Merijn de Jonge, and Eelco Visser. 2004. “Nix: A Safe
 and Policy-Free System for Software Deployment.” In *Proceedings of the
 18th USENIX Conference on System Administration*, 79–92. LISA ’04. USA:
 USENIX Association.
