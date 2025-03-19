@@ -1,0 +1,3 @@
+- hostname: serving.vm
+  ip: 172.0.0.3
+  port: 443
