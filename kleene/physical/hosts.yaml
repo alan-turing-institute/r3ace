@@ -1,0 +1,3 @@
+- hostname: serving.local
+  ip: 169.254.220.46
+  port: 443
