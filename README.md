@@ -1,4 +1,5 @@
 # R<sup>3</sup>ACE - *Replicable* and *Reproducible* *Real-World* Autonomous Cyber Environments
+
 ## Motivation
 Existing cyber environments **incorporating low fidelity models and high levels of abstraction** <sub>[1],[2]</sub>, are valuable for exploring more fundamental research problems in autonomous cyber defence (ACD), such as task and entity generalisation.
 
@@ -8,7 +9,7 @@ Environments attempting to close the reality-gap have been varied in their appro
 
 Moreover, **the decision problems presented by the more realistic environments that are currently available, are extremely challenging**. It is complex both to make progress and to measure it. In these environments **research faces the complexity of realism _combined_ with scale**.
 
-### Contributions to ACD research:
+### Contributions to Autonomous Cyber Defence (ACD) research:
 1. Explore the challenges of realism, without the challenge of scale - focusing on **_replicability_** and _**reproducibility**_.
 2. Specifically, train and evalutate ACD agents against **_continuous-time_**, **_conurrently-running_** cyber systems. This is a departure from cyber environments that expose discrete-time, turn-based finite state machines.
 3. Investigate both **_physical_** and **_virtual_** systems, with _**accessible**_ and _**reproducible**_ infrastructure.
@@ -34,7 +35,7 @@ The system can be instantiated with either physical hardware (e.g. a network of 
 ## A Simple Decision Problem
 ### Scenario
 The _web client_ sends a stream of GET requests at a **constant rate**, $R$. The _adversary_ carries out a Denial-of-Service (DOS) attack.
-And a 'blue agent' (the `blue` program, see [Reference Implementation](#reference-implementation)), is running on the _web server_ machine with the objective of ensuring that _web client_ GET requests receive OK (status code = 200) responses.
+And a 'blue agent' (the `blue` program, see [Reference Implementation](#reference-implementation) section below), is running on the _web server_ machine with the objective of ensuring that _web client_ GET requests receive OK (status code = 200) responses.
 
 ### Decision Problem
 The blue agent has access to the following information:
@@ -51,21 +52,26 @@ The blue agent is able to execute the followingactions:
 The agent is evaluated against the cumulative number of OK (status code = 200) responses received by the _web client_, as a fraction of the total number of requests made by the _web client_.
 
 ### TL;DR
-The blue agent knows the current rate of OK responses received by the client and must figure out which of the 2 IP addresses belongs to the _web client_, blocking the other IP address which belongs to the adversary.
+The blue agent knows the current rate of OK responses received by the client and must figure out which of the two IP addresses belongs to the _web client_, blocking the other IP address which belongs to the adversary.
 
 ## Reference Implementation
-The implementation involves the following software components:
+The reference implementation implements the decision problem described above, on R<sup>3</sup>ACE infrastructure. The following software components have been developed:
 - [`serving`](https://github.com/edchapman88/serving) (HTTP server): An executable running on the _web server_ machine, responding to GET requests with OK (status code = 200) responses.
 - [`getting`](https://github.com/edchapman88/getting) (HTTP client): An executable running on the _web client_ machine, sending GET requests to the HTTP server at a constant rate and emmitting a signal whenever an OK (status code = 200) response is received.
 - [`blue`](https://github.com/edchapman88/blue) (blue agent): An executable running on the _web server_ machine, managing the HTTP server blocklist, and parsing the signal emmited by the _web client_ to evaluate the current average rate of OK responses.
+- [`got`](https://github.com/edchapman88/got) (analysis): A repository with a library of helper functions for parsing and plotting the log files written by the above executables. A catalogue of experiments (each with a `.ipynb` notebook, plots and some basic analysis) serve as a reference point for designing, running and analysing experiments.
+- [`eyes`](https://github.com/edchapman88/eyes) (parsing): A dependency of `got`, a library of types and parsing functions. The `got` [README](https://github.com/edchapman88/got/blob/main/README.md) describes how to install `eyes` as a dependency.
 
 It is also necessary to **extend the R<sup>3</sup>ACE infrastructure** for this decision problem, to provide an _out-of-band_ communication channel between the _web client_ machine and the _web server_ machine. This enables the `blue` program to receive the OK response signals emmited by the _web client_, _reliably_, even during a successful attack launched by the _adversary_.
 
 In this reference implementation the _out-of-band_ channel of communication is provided by:
-- For the physical infrastructure: a wired serial connection.
+- For the physical infrastructure: a wired serial connection (using a [Null Modem cable](https://en.wikipedia.org/wiki/Null_modem)).
 - For the virtual infrastructure: a UDP connection **on a seperate private LAN**, isolated from the main R<sup>3</sup>ACE network.
 
 As such, the `getting` software and the `blue` software support both serial and UDP protocols for emmiting and receiving information on the _out-of-band_ channel.
+
+Below is an example plot, generated by an R3ACE experiment. A basic policy solves the decision problem described above. After a period of exploration the policy correctly keeps the _adversary_ in the firewall blocklist, allowing requests from the _web client_ through to the HTTP server. The [`got`](https://github.com/edchapman88/got) library was used for parsing and plotting the information in the log files gathered from the environment.
+![An example plot generated from an R3ACE experiment](figures/analysis.png)
 
 # Getting Started
 ## How is this different to other Cyber Environments?
@@ -80,8 +86,8 @@ This software:
 2. Uses a policy to decide what (if any) action to take.
 3. Executes this action, causing a side effect in the cyber system (e.g. an IP address is added to a block list).
 
-> [!IMPORTANT]
-> The above design for a program should infact be useful for the application of ACD to **many** _realistic_, or indeed _real-world_ cyber systems. As such, we have **designed and documented an abstract software interface**, the [markov](https://github.com/edchapman88/blue#the-markov-library) library, to _generalise_ over different cyber systems and policies.
+### The [`markov`](https://github.com/edchapman88/blue#the-markov-library) library
+The above design for a program should infact be useful for the application of ACD to **many** _realistic_, or indeed _real-world_ cyber systems. As such, we have **designed and documented an abstract software interface**, the [`markov`](https://github.com/edchapman88/blue#the-markov-library) library, to _generalise_ over different cyber systems and policies.
 
 ## How do you train or evaluate policies?
 In **_R<sup>3</sup>ACE_**, a policy is a software implementation of the `RLPolicyType` interface. This interface is one of the building blocks that make up the modular software interface for the `blue` program.
