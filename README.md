@@ -13,48 +13,85 @@ Moreover, **the decision problems presented by the more realistic environments t
 2. Specifically, train and evalutate ACD agents against **_continuous-time_**, **_conurrently-running_** cyber systems. This is a departure from cyber environments that expose discrete-time, turn-based finite state machines.
 3. Investigate both **_physical_** and **_virtual_** systems, with _**accessible**_ and _**reproducible**_ infrastructure.
 
-## Overview
-### Objective
-Make publicly accessible a real-world cyber environment that models a **_minimum viable cyber system_** - _minimum_ in it's scale and complexity; prioritising **_replicability_**, **_reproducibility_** and **_public accessibility_**.
+# Overview
+## Objectives
+1. Make publicly accessible a real-world cyber environment that models a **_minimum viable cyber system_** - _minimum_ in it's scale and complexity; prioritising **_replicability_**, **_reproducibility_** and **_public accessibility_**.
+2. Define a simple decision problem using the R<sup>3</sup>ACE infrastructure, providing a reference implementation.
 
-### A **_minimum viable cyber system_**
+## A **_minimum viable cyber system_**
 Our design for a **_minimum viable cyber system_** (there are surely others) consists of 3 machines networked together via a switch.
 
 ![schematic of the infrastructure for a minimum viable cyber system](figures/infra-schematic.png)
 
 Central to the task of evaluating the defence of a cyber system is a consensus on it's **_utility_** - the value or service that the system provides, upon which stakeholders depend. Simulating this utility is an important and challenging task in the design of cyber environments.
 
-We propose that **one of the machines, the '_web client_', finds utility in receiving a constant stream of OK (status code = 200) responses** to the GET requests it sends to the '_web server_'.
+We propose that **one of the machines, the '_web client_', finds utility in receiving OK (status code = 200) responses** to GET requests it sends to another machine, the '_web server_'. The third machine, the '_adversary_' has the objective of carrying out a successful cyber attack. **An attack is deemed successful if the _utility_ of the system is comprimised**, i.e. the _web client_ does not receive OK (status code = 200) responses to GET requests sent to the _web server_.
 
 The system can be instantiated with either physical hardware (e.g. a network of Raspberry Pi's) or virtualised hardware.
 
 ![photo of a minimum viable cyber system instantiated with physical hardware, 3 Raspberry Pi's networked together with an ethernet switch](figures/physical-infrastructure.jpg)
+
+## A Simple Decision Problem
+### Scenario
+The _web client_ sends a stream of GET requests at a **constant rate**, $R$. The _adversary_ carries out a Denial-of-Service (DOS) attack.
+And a 'blue agent' (the `blue` program, see [Reference Implementation](#reference-implementation)), is running on the _web server_ machine with the objective of ensuring that _web client_ GET requests receive OK (status code = 200) responses.
+
+### Decision Problem
+The blue agent has access to the following information:
+- The _web client_ request rate, $R$.
+- The average rate of OK (status code = 200) responses received by the _web client_.
+- The IP addresses of the other two machines in the network, **though it is not know which machine is the _adversary_**.
+- A list of the IP addresses on the firewall blocklist. Requests to the HTTP server (on the _web server_ machine) from these IP addresses are blocked by the system firewall - they do not reach the HTTP server.
+
+The blue agent is able to execute the followingactions:
+- Add or remove IP addresses from the _web server_ blocklist.
+- Do nothing.
+
+### Evaluation
+The agent is evaluated against the cumulative number of OK (status code = 200) responses received by the _web client_, as a fraction of the total number of requests made by the _web client_.
+
+### TL;DR
+The blue agent knows the current rate of OK responses received by the client and must figure out which of the 2 IP addresses belongs to the _web client_, blocking the other IP address which belongs to the adversary.
+
+## Reference Implementation
+The implementation involves the following software components:
+- [`serving`](https://github.com/edchapman88/serving) (HTTP server): An executable running on the _web server_ machine, responding to GET requests with OK (status code = 200) responses.
+- [`getting`](https://github.com/edchapman88/getting) (HTTP client): An executable running on the _web client_ machine, sending GET requests to the HTTP server at a constant rate and emmitting a signal whenever an OK (status code = 200) response is received.
+- [`blue`](https://github.com/edchapman88/blue) (blue agent): An executable running on the _web server_ machine, managing the HTTP server blocklist, and parsing the signal emmited by the _web client_ to evaluate the current average rate of OK responses.
+
+It is also necessary to **extend the R<sup>3</sup>ACE infrastructure** for this decision problem, to provide an _out-of-band_ communication channel between the _web client_ machine and the _web server_ machine. This enables the `blue` program to receive the OK response signals emmited by the _web client_, _reliably_, even during a successful attack launched by the _adversary_.
+
+In this reference implementation the _out-of-band_ channel of communication is provided by:
+- For the physical infrastructure: a wired serial connection.
+- For the virtual infrastructure: a UDP connection **on a seperate private LAN**, isolated from the main R<sup>3</sup>ACE network.
+
+As such, the `getting` software and the `blue` software support both serial and UDP protocols for emmiting and receiving information on the _out-of-band_ channel.
 
 # Getting Started
 ## How is this different to other Cyber Environments?
 In contrast with 'AI Gym' environments, such as those available in the [OpenAI/gym](https://github.com/openai/gym) project <sub>[6]</sub>, **_R<sup>3</sup>ACE_** does **not** expose a turn-based API (e.g. the environment, a finite state machine, 'waits' while the policy computes an action, after which the environment is 'stepped' forwards to the agents next turn).
 
 > [!IMPORTANT]
-> **_R<sup>3</sup>ACE_ is a real computer network** (cyber infrastructure) with a cyber defence software program, the _'blue program_' running on one of the machines.
+> **_R<sup>3</sup>ACE_ is a real computer network** (cyber infrastructure) with a cyber defence software program, `blue`, running on one of the machines.
 
-### The _blue program_
+### The [`blue`](https://github.com/edchapman88/blue) program
 This software:
 1. Fetches information from the cyber system (the surrounding compute network).
 2. Uses a policy to decide what (if any) action to take.
 3. Executes this action, causing a side effect in the cyber system (e.g. an IP address is added to a block list).
 
 > [!IMPORTANT]
-> The above design for a program should infact be useful for the application of ACD to **many** _realistic_, or indeed _real-world_ cyber systems. As such, we have **designed and documented an abstract software interface** to _generalise_ over different cyber systems and policies.
+> The above design for a program should infact be useful for the application of ACD to **many** _realistic_, or indeed _real-world_ cyber systems. As such, we have **designed and documented an abstract software interface**, the [markov](https://github.com/edchapman88/blue#the-markov-library) library, to _generalise_ over different cyber systems and policies.
 
 ## How do you train or evaluate policies?
-In **_R<sup>3</sup>ACE_**, a policy is a software implementation of the `RLPolicyType` interface. This interface is one of the building blocks that make up the modular software interface for the _blue program_.
+In **_R<sup>3</sup>ACE_**, a policy is a software implementation of the `RLPolicyType` interface. This interface is one of the building blocks that make up the modular software interface for the `blue` program.
 
-At present, the policy module of the _blue program_ interface (defined in OCaml) must be implemented in OCaml, along with the rest of the _blue program_. **There are plans to provide a policy implementation that exposes an HTTP API, over which observations and actions could be exchanged between the _blue program_ and another runtime (e.g. Python) functioning as a '_policy server_'**.
+At present, the policy module of the `blue` program interface (defined in OCaml) must be implemented in OCaml, along with the rest of the `blue` program. **There are plans to provide a policy implementation that exposes an HTTP API, over which observations and actions could be exchanged between the `blue` program and another runtime (e.g. Python) functioning as a '_policy server_'**.
 
-Training or evaluation occurs when the cyber system is running (all network hosts are up with applications running, e.g. servers, clients, logging daemons) **and** the _blue program_ is running (with an embedded policy, as discussed). The distinction between training and evaluation comes down to whether or not the policy implementation is 'self-optimising' at that point in time (e.g. the program mutating the policy based on the rewards returned by the reward function).
+Training or evaluation occurs when the cyber system is running (all network hosts are up with applications running, e.g. servers, clients, logging daemons) **and** the `blue` program is running (with an embedded policy, as discussed). The distinction between training and evaluation comes down to whether or not the policy implementation is 'self-optimising' at that point in time (e.g. the program mutating the policy based on the rewards returned by the reward function).
 
 
-# Set Up Infrastructure - Physical or Virtual
+# Set Up R<sup>3</sup>ACE Infrastructure - Physical or Virtual
 ## How are the machines **_reproducibly_** configured?
 The machines run [NixOS](https://nixos.org/) <sub>[7]</sub>, a Linux distribution based on the Nix package management system <sub>[8]</sub>. Producing _"reproducible, declarative and reliable systems"_ is central to Nix's design.
 
@@ -62,7 +99,7 @@ The machines run [NixOS](https://nixos.org/) <sub>[7]</sub>, a Linux distributio
 
 Find out more about NixOS at [nixos.org](https://nixos.org/), or see some quick tips at [`./docs/nixos-tips.md`](docs/nixos-tips.md): which includes tips on **packaging your own software as a Nix Package**, making it installable onto one of the NixOS machines.
 
-**_TLDR:_** An OS is declared with a `flake.nix` file, but most of the OS configuration can be found in a `configuration.nix` file, which is imported by the `flake.nix` file. In short, the two files together with any other anxillary documents (SSL certificates, config files for programs to be run on the machines, etc.) make up the full configuration of each machine.
+**_TL;DR:_** An OS is declared with a `flake.nix` file, but most of the OS configuration can be found in a `configuration.nix` file, which is imported by the `flake.nix` file. In short, the two files together with any other anxillary documents (SSL certificates, config files for programs to be run on the machines, etc.) make up the full configuration of each machine.
 
 ## Using physical infrastructure: Raspberry Pis
 To install a configuration onto a Raspberry Pi Model 4B, following these steps:
