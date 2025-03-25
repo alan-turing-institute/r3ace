@@ -80,17 +80,17 @@ In contrast with 'AI Gym' environments, such as those available in the [OpenAI/g
 > [!IMPORTANT]
 > **_R<sup>3</sup>ACE_ is a real computer network** (cyber infrastructure) with a cyber defence software program, `blue`, running on one of the machines.
 
-### The [`blue`](https://github.com/edchapman88/blue) program
+### The [`blue`](https://edchapman88.github.io/blue/blue/index.html) program
 This software:
 1. Fetches information from the cyber system (the surrounding compute network).
 2. Uses a policy to decide what (if any) action to take.
 3. Executes this action, causing a side effect in the cyber system (e.g. an IP address is added to a block list).
 
-### The [`markov`](https://github.com/edchapman88/blue#the-markov-library) library
-The above design for a program should infact be useful for the application of ACD to **many** _realistic_, or indeed _real-world_ cyber systems. As such, we have **designed and documented an abstract software interface**, the [`markov`](https://github.com/edchapman88/blue#the-markov-library) library, to _generalise_ over different cyber systems and policies.
+### The [`markov`](https://edchapman88.github.io/blue/markov/index.html) library
+The above design for a program should infact be useful for the application of ACD to **many** _realistic_, or indeed _real-world_ cyber systems. As such, we have **designed and documented an abstract software interface**, the [`markov`](https://edchapman88.github.io/blue/markov/index.html) library, to _generalise_ over different cyber systems and policies.
 
 ## How do you train or evaluate policies?
-In **_R<sup>3</sup>ACE_**, a policy is a software implementation of the `RLPolicyType` interface. This interface is one of the building blocks that make up the modular software interface for the `blue` program.
+In **_R<sup>3</sup>ACE_**, a policy is a software implementation of the [`RLPolicyType`](https://edchapman88.github.io/blue/markov/markov/Markov/Agent/module-type-RLPolicyType/index.html) interface. This interface is one of the building blocks that make up the modular software interface for the `blue` program.
 
 At present, the policy module of the `blue` program interface (defined in OCaml) must be implemented in OCaml, along with the rest of the `blue` program. **There are plans to provide a policy implementation that exposes an HTTP API, over which observations and actions could be exchanged between the `blue` program and another runtime (e.g. Python) functioning as a '_policy server_'**.
 
