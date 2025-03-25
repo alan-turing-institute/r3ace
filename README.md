@@ -98,7 +98,7 @@ Training or evaluation occurs when the cyber system is running (all network host
 
 # Getting Started
 You could get started in a number of ways. In order of increasing ambition:
-1. Run the [reference implementation](#reference-implementation) (with the basic policy provided), against the [Simple Decision Problem](#a-simple-decision-problem) and **reproduce** the plot above.
+1. Run the [reference implementation](#reference-implementation) (with the basic policy provided), against the [Simple Decision Problem](#a-simple-decision-problem) to **reproduce** the plot above.
 2. Use the reference implementation and the Simple Decision Problem as a Cyber Environment: **Develop new agent policies**, train and evaluate against **different cyber attacks**.
 3. **Design a more complex decision problem** on the R<sup>3</sup>ACE _minimum viable system_. Implement the required functionality (perhaps new observations or actions). Train agents to solve this problem.
 4. Inspired by the R<sup>3</sup>ACE approach to _Replicable_ and _Reproducible_ _Real-World_ Cyber Environments, design an alternative cyber system, perhaps **increasing the scale or complexity of the infrastructure**. 
