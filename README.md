@@ -178,7 +178,11 @@ OK
 - Future configurations must now be built for the new hostname, by updating the value in `flake.nix`.
 
 ## Using virtual infrastructure
-As an alternative to booting NixOS on physcial hardware, virtual machine (VM) images or 'virtual disks' (with OS pre-installed) can be built from the NixOS config files and the network between the machines can be virtualised. Pre-built aarch64 _VMWare_ VM disks are available for the 3 machines in this project. These VMs should run with minimal set-up when hosted on a laptop or PC with an ARM processor e.g. ARM-linux, or MacOS with Apple Silicon chips (M1, M2, ...).
+As an alternative to booting NixOS on physcial hardware, virtual machine (VM) images or 'virtual disks' (with OS pre-installed) can be built from the NixOS config files and the network between the machines can be virtualised.
+
+**Pre-built aarch64 _VMWare_ VM disks are available [here](https://zenodo.org/records/15147272) for the 3 machines in this project.** 
+
+These VMs should run with minimal set-up when hosted on a laptop or PC with an ARM processor e.g. ARM-linux, or MacOS with Apple Silicon chips (M1, M2, ...).
 
 [`./docs/building-vm-images.md`](docs/building-vm-images.md) includes details about building VM images and virtual disks (such as the pre-built _VMWare_ VM disks made available). In principal, the software used to build the images ([`nixos-generators`](https://github.com/nix-community/nixos-generators)) also supports building images for many other platforms: _VirtualBox_, _Amazon EC2_, _Docker_, _Azure_ - though building for these platforms has not been tested during this project.
 
@@ -190,7 +194,7 @@ As an alternative to booting NixOS on physcial hardware, virtual machine (VM) im
     - Open the 'Network' tab.
     - Add a new custom network with the `+` button.
     - _*Disable*_ the box `Allow virtual machines on this network to connect to external networks (using NAT)`. We do not want to allow the guest VMs to be connected to the external networks that your host machine is connected to.
-    - _*Enable*_ the box to `Connect the host Mac to this network`. This will enable us to send requests to the VMs, or open SSH connections to them. This box may be disabled at a later date to 'air-gap' the VMs from your host Mac for safety (e.g. running experiments involving harmful software).
+    - _*Disable*_ the box to `Connect the host Mac to this network`.
     - _*Enable*_ the box to `Provide addresses on this network via DHCP`.
     - Enter the `Subnet IP`: `172.0.0.0`.
     - Enter the `Subnet Mask`: `255.255.255.0`.
@@ -200,29 +204,41 @@ As an alternative to booting NixOS on physcial hardware, virtual machine (VM) im
     - Now _*Disable*_ `Provide addresses on this network via DHCP`. The setting for the `Subnet IP` and `Subnet Mask` with go grey but remain configured with the values above. This is important.
     - Click `Apply` again.
 3. Create another private network that will be shared between only the '_web client_' and '_web_server_'. This network, isolated from the first, will be an _out-of-band_ communication channel between the client and server. To do so, repeat step two with the following differences:
-    - _*Disable*_ the box to `Connect the host Mac to this network`.
     - Enter the `Subnet IP`: `172.0.1.0`.
     - Name the network `r3ace-udp`.
 Follow all of the other steps, as before, in sequence.
-4. Create a new virtual machine from a pre-built VM disk of your choice. It's recommended to setup `hilbert` first, because the networking can be tested by making HTTPS requests to the web server installed on the `hilbert` VM disk.
+4. Create a third private network that will enable us to send requests from the VM host to the VMs, or open SSH connections to them. The VMs may be disconnected from this network at a later date to 'air-gap' the VMs from your host Mac for safety (e.g. running experiments involving harmful software). To do so, repeat step two with the following differences:
+    - _*Enable*_ the box to `Connect the host Mac to this network`.
+    - Enter the `Subnet IP`: `172.0.2.0`.
+    - Name the network `ssh`.
+6. Create a new virtual machine from a pre-built VM disk of your choice. It's recommended to setup `hilbert` first, because the networking can be tested by making HTTPS requests to the web server installed on the `hilbert` VM disk.
     - Open VMWare and click the `+` icon to create a new VM.
     - Click `Create a custom virtual machine` and the `Continue`.
     - For `Choose Operating System`, pick `Other` and `Other 64-bit arm` and `Continue`.
     - Select `Use an existing virtual disk`, then click `Choose virtual disk...` to select the VM disk file. This should be a file with a `.vmdk` file extension. Ensure that `Make a seperate copy of the virtual disk` is selected. Click `Continue`.
     - Click `Customize Settings` to bring up the setting for the VM once it has been created. Choose an appropriate name for the new VM and click `Save` to create it.
-5. Adjust the setting of the newly created VM:
+7. Adjust the setting of the newly created VM:
     - Under `Processors and Memory`, allocate appropriate resources to the VM guest (e.g. If you have an 8-core M1 Mac with 32Gb of RAM then perhaps allocate 2 cores to the VM, and 4Gb of memory).
-    - Under `Network Adaptor` ensure that appropriate network(s) are selected. `post` should be connected to **only** the `r3ace` network; `hilbert` and `kleene` to **both** the `r3ace` network **and** the `r3ace-udp` network.
-6. Boot the VM.
-7. Log in with username `blue` and password `changeme`.
+    - Under `Network Adapter` ensure that appropriate network(s) are selected. `post` should be connected to **only** the `r3ace` network; `hilbert` and `kleene` to **both** the `r3ace` network **and** the `r3ace-udp` network.
+    - VMs can be connected to the `ssh` network during setup (if necessary) so that `ssh` and `scp` can be used between the VM host and the VMs.
+    - Before booting for the first time, enter the correct mac address for each network adapter. The mac addresses are configured in the `Advanced options` drop down of the setting for each network adapter. The mac addresses for each VM and each network adapter are as follows:
 
-### Test the network setup
-1. After following the tutorial above to create and configure a `hilbert` VM, set the VM running.
-2. Open a terminal on your host machine (e.g. your Mac).
-3. Check the IP address that your Mac has self-assigned on the VMWare network with `ifconfig | grep 172.0.0. -B 5`. The only IP addresses that are a problem here are `172.0.0.2`, `172.0.0.3` and `172.0.0.4` because these are the static IP addresses of guest VMs. 
-4. If necessary, re-assign the IP of your host mac on the VMWare network with the following command: `ifconfig <interface name> 172.0.0.10` replacing `<interface name>` with the name of the interface in the first line of the output returned by `grep`. It is probably `bridge103` or something similar.
-5. Now make a `curl` request to the web server running inside the `hilbert` VM with `curl https://172.0.0.3 --cacert some-cert-auth.crt`. If necessary, modify the path to the SSL certificate file (`/path/to/some-cert-auth.crt`). The certificate file is included in the root directory of this repository.
-6. The `curl` request should return `Hello World`. If it doesn't then raise an issue on this repo.
+|  | `r3ace` | `r3ace-udp` | `ssh` |
+| - | ------- | ---------- | ------ |
+| `hilbert` | `02:00:00:00:03:00` | `02:00:00:00:03:01` | `02:00:00:00:03:02` |
+| `kleene` | `02:00:00:00:02:00` | `02:00:00:00:02:01` | `02:00:00:00:02:02` |
+| `post` | `02:00:00:00:04:00` | n/a | `02:00:00:00:04:02` |
+
+8. Boot the VM.
+9. The users setup on each vm are as follows:
+
+| | username | password |
+| - | ------ | -------- |
+| `hilbert` | `blue` | `changeme` |
+| `kleene` | `green` | `changeme` |
+| `post` | `red` | `changeme` |
+
+10. Once logged-in new passwords can be set for all users.
 
 # References
 [1] “Cyber Operations Research Gym.” 2022.
