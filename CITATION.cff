@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Chapman"
+  given-names: "Edward"
+- family-names: "Hicks"
+  given-names: "Chris"
+- family-names: "Mavroudis"
+  given-names: "Vasilios"
+title: "r3ace"
+version: 0.1.0
+doi: 10.5281/zenodo.15147271
+date-released: 2025-03-31
+url: "https://github.com/alan-turing-institute/r3ace"
